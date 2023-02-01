@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
+
 namespace text_anal
 {
     public partial class Form1 : Form
@@ -18,6 +20,7 @@ namespace text_anal
             openFileDialog1.Filter = "Text files(*.txt)|*.txt|All files(*.*)|*.*";
             saveFileDialog1.Filter = "Text files(*.txt)|*.txt|All files(*.*)|*.*";
         }
+        // правило сортировки для строк по их длине (по убыванию)
         class StringMax : IComparer<string>
         {
             public int Compare(string o1, string o2)
@@ -29,68 +32,57 @@ namespace text_anal
                 return 0;
             }
         }
-        class StringMin : IComparer<string>
-        {
-            public int Compare(string o1, string o2)
-            {
-                if (o1.Length > o2.Length)
-                    return 1;
-                else if (o1.Length < o2.Length)
-                    return -1;
-                return 0;
-            }
-        }
         private void buttonAnalysis_Click(object sender, EventArgs e)
         {
             string text = textBox.Text;
             // при помощи регулярного выражения находим все слова
             Regex rg = new Regex("[а-яa-z]+", RegexOptions.IgnoreCase);
             MatchCollection matches = rg.Matches(text);
-            List<string> str = new List<string>();
-            Dictionary<string, int> stat = new Dictionary<string, int>();
-            foreach (Match m in matches)
+            List<string> allWords = new List<string>();
+            // заполняем словарь: ключ - уникльное слово, значение - количество повторений
+            Dictionary<string, int> wordStat = new Dictionary<string, int>();
+            foreach (Match match in matches)
             {
-                str.Add(m.ToString().ToLower());
-                if (stat.ContainsKey(m.ToString().ToLower()))
-                    stat[m.ToString().ToLower()]++;
+                string word = match.ToString().ToLower();
+                if (wordStat.ContainsKey(word))
+                    wordStat[word]++;
                 else
-                    stat.Add(m.ToString().ToLower(), 1);
+                {
+                    wordStat.Add(word, 1);
+                    allWords.Add(word);
+                }
             }
+            // выводим информацию об общем количестве слов
             label1.Text = "Количество слов = " + matches.Count.ToString();
             StringMax sort1 = new StringMax();
-            str.Sort(sort1);
+            allWords.Sort(sort1);
+            // выводим информацию о самых длинных и самых коротких словах 
             label2.Text = "Топ 10 слов:";
-            int i = 0;
-            foreach (string s in str)
-            {
-                label2.Text += ("\n" + (i+1) + ") " + s);
-                i++;
-                if (i > 9)
-                    break;
-            }
-            StringMin sort2 = new StringMin();
-            str.Sort(sort2);
             label3.Text = "Анти топ 10 слов:";
-            i = 0;
-            foreach (string s in str)
+            for(int k = 0; k < (allWords.Count > 10? 10 : allWords.Count); k++)
             {
-                label3.Text += ("\n" + (i + 1) + ") " + s);
-                i++;
-                if (i > 9)
-                    break;
+                label2.Text += ("\n" + (k + 1) + ") " + allWords[k]);
+                label3.Text += ("\n" + (k + 1) + ") " + allWords[allWords.Count - 1 - k]);
             }
+            // выводим информацию о частоте слов в тексте
             textBox1.Text = "";
-            foreach (var word in stat)
-                textBox1.Text += word.Key + " - " + ((float)word.Value / (float)matches.Count * 100).ToString() + "%\r\n";          
+            foreach (var word in wordStat)
+            {
+                float wordFreq = ((float)word.Value / (float)matches.Count) * 100;
+                textBox1.Text += $"{word.Key} - {wordFreq}%\r\n";
+            }
+            // подсчитываем топ самых встречющихся слов
+            // список топа
             List<string> topFreqWords = new List<string>();
+            // самое длинное слово
             string max_word = null;
-            i = 10;
-            if (stat.Count < 10)
-                i = stat.Count;
-            for (; i > 0; i--)
+            // если слов меньше 10, то количество позиций топа будет = количеству слов
+            for (int k = wordStat.Count > 10? 10 : wordStat.Count; k >= 0; k--)
             {
                 int max = 0;
-                foreach (var word in stat)
+                // в цикле проходимся по парам ключ-значение из статистики и находим максимальное
+                // по знчению value
+                foreach (var word in wordStat)
                 {
                     if (word.Value > max)
                     {
@@ -98,9 +90,12 @@ namespace text_anal
                         max_word = word.Key;
                     }
                 }
+                // добавляем в список найденное максимальное
                 topFreqWords.Add(max_word);
-                stat.Remove(max_word);
+                // удаляем его из списка статистики
+                wordStat.Remove(max_word);
             }
+            // выводим топ самых встречющихся слов
             label4.Text = "Топ 10 частых слов";
             foreach (string word in topFreqWords)
                 label4.Text += "\n" + word;
@@ -126,6 +121,11 @@ namespace text_anal
             string saveText = label2.Text + "\n" + label3.Text + "\n" + label4.Text + "\n" + label5.Text + "\n" + textBox1.Text;
             System.IO.File.WriteAllText(filename, saveText);
             MessageBox.Show("Файл сохранен");
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+
         }
     }
 }
