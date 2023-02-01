@@ -32,18 +32,6 @@ namespace text_anal
                 return 0;
             }
         }
-        // правило сортировки для строк по их длине (по возрстанию)
-        class StringMin : IComparer<string>
-        {
-            public int Compare(string o1, string o2)
-            {
-                if (o1.Length > o2.Length)
-                    return 1;
-                else if (o1.Length < o2.Length)
-                    return -1;
-                return 0;
-            }
-        }
         private void buttonAnalysis_Click(object sender, EventArgs e)
         {
             string text = textBox.Text;
@@ -89,7 +77,7 @@ namespace text_anal
             // самое длинное слово
             string max_word = null;
             // если слов меньше 10, то количество позиций топа будет = количеству слов
-            for (int k = wordStat.Count % 10; k > 0; k--)
+            for (int k = wordStat.Count % 10 - 1; k >= 0; k--)
             {
                 int max = 0;
                 // в цикле проходимся по парам ключ-значение из статистики и находим максимальное
