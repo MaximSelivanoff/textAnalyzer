@@ -59,7 +59,7 @@ namespace text_anal
             // выводим информацию о самых длинных и самых коротких словах 
             label2.Text = "Топ 10 слов:";
             label3.Text = "Анти топ 10 слов:";
-            for(int k = 0; k < allWords.Count % 10; k++)
+            for(int k = 0; k < (allWords.Count > 10? 10 : allWords.Count); k++)
             {
                 label2.Text += ("\n" + (k + 1) + ") " + allWords[k]);
                 label3.Text += ("\n" + (k + 1) + ") " + allWords[allWords.Count - 1 - k]);
@@ -77,7 +77,7 @@ namespace text_anal
             // самое длинное слово
             string max_word = null;
             // если слов меньше 10, то количество позиций топа будет = количеству слов
-            for (int k = wordStat.Count % 10 - 1; k >= 0; k--)
+            for (int k = wordStat.Count > 10? 10 : wordStat.Count; k >= 0; k--)
             {
                 int max = 0;
                 // в цикле проходимся по парам ключ-значение из статистики и находим максимальное
@@ -121,6 +121,11 @@ namespace text_anal
             string saveText = label2.Text + "\n" + label3.Text + "\n" + label4.Text + "\n" + label5.Text + "\n" + textBox1.Text;
             System.IO.File.WriteAllText(filename, saveText);
             MessageBox.Show("Файл сохранен");
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+
         }
     }
 }
